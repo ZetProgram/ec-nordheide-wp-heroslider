@@ -12,10 +12,10 @@
  * Text Domain: hcs
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit;
+if (!defined('ABSPATH')) exit;
 
-define( 'HCS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'HCS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define('HCS_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('HCS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 require_once HCS_PLUGIN_DIR . 'inc/cpt.php';
 require_once HCS_PLUGIN_DIR . 'inc/meta.php';
@@ -32,8 +32,8 @@ function hcs_register_assets_and_block() {
 	wp_register_script(
 		'we-hero-slider-editor',
 		HCS_PLUGIN_URL . 'build/editor.js',
-		array( 'wp-blocks', 'wp-element', 'wp-i18n', 'wp-components', 'wp-block-editor' ),
-		file_exists( $editor_js ) ? filemtime( $editor_js ) : null
+		array('wp-blocks','wp-element','wp-i18n','wp-components','wp-block-editor'),
+		file_exists($editor_js) ? filemtime($editor_js) : null
 	);
 
 	// Slider-Taxonomie-Terme an Editor durchreichen (Dropdown)
@@ -42,17 +42,17 @@ function hcs_register_assets_and_block() {
 		'hide_empty' => false,
 	));
 	$term_data = array_map(
-		function( $t ){ return array( 'id' => $t->term_id, 'name' => $t->name ); },
-		is_array( $terms ) ? $terms : array()
+		function($t){ return array('id' => $t->term_id, 'name' => $t->name); },
+		is_array($terms) ? $terms : array()
 	);
-	wp_localize_script( 'we-hero-slider-editor', 'HCS_TERMS', $term_data );
+	wp_localize_script('we-hero-slider-editor', 'HCS_TERMS', $term_data);
 
 	// Frontend-Script (Slider/Countdown)
 	wp_register_script(
 		'we-hero-slider-view',
 		HCS_PLUGIN_URL . 'build/view.js',
 		array(),
-		file_exists( $view_js ) ? filemtime( $view_js ) : null,
+		file_exists($view_js) ? filemtime($view_js) : null,
 		true
 	);
 
@@ -61,46 +61,75 @@ function hcs_register_assets_and_block() {
 		'we-hero-slider-style',
 		HCS_PLUGIN_URL . 'build/style.css',
 		array(),
-		file_exists( $style_css ) ? filemtime( $style_css ) : null
+		file_exists($style_css) ? filemtime($style_css) : null
 	);
 
 	// Block (dynamisches Rendern via render.php)
-	register_block_type( __DIR__ . '/block.json', array(
+	register_block_type(__DIR__ . '/block.json', array(
 		'render_callback' => 'hcs_render_block',
-	) );
+	));
 }
-add_action( 'init', 'hcs_register_assets_and_block' );
+add_action('init', 'hcs_register_assets_and_block');
 
 require_once HCS_PLUGIN_DIR . 'render.php';
 
 /**
- * Plugin Update Checker (GitHub Releases)
+ * Plugin Update Checker (GitHub Releases, privates Repo, hart codierter Token möglich)
  * - Repo: ZetProgram/ec-nordheide-wp-heroslider
  * - Branch: production
  * - nutzt Release Assets (ZIP vom Release)
  */
-function hcs_setup_updates() {
-	$vendor = HCS_PLUGIN_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
-	if ( file_exists( $vendor ) ) {
-		require_once $vendor;
+add_action('plugins_loaded', function () {
 
-		$update_checker = Puc_v4_Factory::buildUpdateChecker(
-			'https://github.com/ZetProgram/ec-nordheide-wp-heroslider/',
-			__FILE__,
-			'hero-countdown-slider' // Slug = Ordnername
-		);
-
-		// Wenn du Releases mit Assets verwendest (empfohlen):
-		$api = $update_checker->getVcsApi();
-		if ( $api ) {
-			$api->enableReleaseAssets();
-		}
-
-		// Fallback (nur falls du mal ohne Releases arbeiten würdest):
-		$update_checker->setBranch( 'production' );
-
-		// Private Repos (optional):
-		// $update_checker->setAuthentication( 'ghp_XXXX' );
+	// 1) PUC-Library defensiv laden (kein Crash, wenn fehlt)
+	$puc_paths = array(
+		HCS_PLUGIN_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php',               // manuell
+		HCS_PLUGIN_DIR . 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php', // falls via Composer
+	);
+	$puc_loaded = false;
+	foreach ($puc_paths as $path) {
+		if (file_exists($path)) { require_once $path; $puc_loaded = true; break; }
 	}
-}
-add_action( 'plugins_loaded', 'hcs_setup_updates' );
+	if (!$puc_loaded || !class_exists('Puc_v4_Factory')) {
+		add_action('admin_notices', function () {
+			echo '<div class="notice notice-warning"><p><strong>Hero Countdown Slider:</strong> Update-Checker nicht gefunden. Erwarte <code>vendor/plugin-update-checker/plugin-update-checker.php</code> im Plugin.</p></div>';
+		});
+		return;
+	}
+
+	// 2) Update-Checker konfigurieren
+	$update_checker = Puc_v4_Factory::buildUpdateChecker(
+		'https://github.com/ZetProgram/ec-nordheide-wp-heroslider/', // Repo-URL
+		__FILE__,                                                    // Hauptdatei
+		'hero-countdown-slider'                                     // Slug = Ordnername
+	);
+
+	// Branch + Release-Assets (ZIP aus GitHub Releases)
+	$update_checker->setBranch('production');
+	if ($api = $update_checker->getVcsApi()) {
+		$api->enableReleaseAssets();
+	}
+
+	// 3) PRIVATES REPO → Authentifizierung
+	//    a) Hart codierter Token (⚠️ Sicherheitsrisiko – nutze möglichst nur "Contents: Read")
+	$hardcoded_token = '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'; // <<< HIER DEIN TOKEN EINTRAGEN
+	if (!empty($hardcoded_token) && $hardcoded_token !== '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') {
+		$update_checker->setAuthentication($hardcoded_token);
+		return;
+	}
+
+	//    b) Fallback: Konstanten/Umgebung (wenn du später umstellen willst)
+	if (defined('HCS_GH_TOKEN') && HCS_GH_TOKEN) {
+		$update_checker->setAuthentication(HCS_GH_TOKEN);
+		return;
+	}
+	if (!empty($_ENV['HCS_GH_TOKEN'])) {
+		$update_checker->setAuthentication($_ENV['HCS_GH_TOKEN']);
+		return;
+	}
+
+	//    c) Wenn gar kein Token gesetzt wurde, Admin-Hinweis (aber kein Fatal)
+	add_action('admin_notices', function () {
+		echo '<div class="notice notice-info"><p><strong>Hero Countdown Slider:</strong> Kein GitHub-Token gesetzt. Updates aus privatem Repo sind ohne Token nicht möglich.</p></div>';
+	});
+});
