@@ -2,7 +2,7 @@
   const { registerBlockType } = wp.blocks;
   const { createElement: el, Fragment } = wp.element;
   const { InspectorControls } = wp.blockEditor || wp.editor;
-  const { PanelBody, SelectControl, ToggleControl, TextControl, Notice } = wp.components;
+  const { PanelBody, SelectControl, ToggleControl, TextControl } = wp.components;
 
   const terms = Array.isArray(window.HCS_TERMS) ? window.HCS_TERMS : [];
 
@@ -46,12 +46,12 @@
               onChange: (v)=> setAttributes({ showArrows: v })
             }),
             el(TextControl, {
-              label: 'Höhe',
+              label: 'Höhe (z. B. 60vh)',
               value: attributes.height,
               onChange: (v)=> setAttributes({ height: v })
             }),
             el(TextControl, {
-              label: 'Eckenradius',
+              label: 'Eckenradius (z. B. 24px)',
               value: attributes.borderRadius,
               onChange: (v)=> setAttributes({ borderRadius: v })
             })
@@ -60,11 +60,13 @@
         el('div', { className: 'components-placeholder' },
           el('div', { style: { padding: '12px' } },
             el('strong', {}, 'Hero Countdown Slider'),
-            el('div', {}, attributes.sliderGroup ? 'Slider gewählt: ' + (groupOptions.find(o=>o.value===attributes.sliderGroup)?.label || attributes.sliderGroup) : 'Bitte einen Slider auswählen.')
+            el('div', {}, attributes.sliderGroup
+              ? 'Slider gewählt: ' + (groupOptions.find(o=>o.value===attributes.sliderGroup)?.label || attributes.sliderGroup)
+              : 'Bitte einen Slider auswählen.')
           )
         )
       );
     },
-    save: () => null // serverseitiges Rendern
+    save: () => null
   });
 })(window.wp);

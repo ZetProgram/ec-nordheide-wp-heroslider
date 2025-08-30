@@ -4,7 +4,7 @@
   "title": "Hero Countdown Slider",
   "category": "design",
   "icon": { "src": "hero-countdown-slider/assets/icon.svg" },
-  "description": "Zeigt die Slides aus einer gewählten Slider-Gruppe.",
+  "description": "Zeigt die Slides aus einer gewählten Slider-Gruppe (CPT) als Hero-Slider mit Countdown & CTA.",
   "supports": {
     "align": ["full", "wide"],
     "spacing": { "padding": true, "margin": true }

@@ -2,33 +2,31 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 function hcs_register_cpt_tax() {
-	// CPT: Hero Slide
-	register_post_type('hcs_slide', array(
+	register_post_type( 'hcs_slide', array(
 		'labels' => array(
-			'name' => 'Hero Slides',
+			'name'          => 'Hero Slides',
 			'singular_name' => 'Hero Slide',
-			'add_new_item' => 'Neue Slide',
-			'edit_item' => 'Slide bearbeiten',
+			'add_new_item'  => 'Neue Slide',
+			'edit_item'     => 'Slide bearbeiten',
 		),
-		'public' => false,
-		'show_ui' => true,
-		'show_in_menu' => true,
-		'menu_icon' => 'dashicons-images-alt2',
-		'supports' => array('title', 'thumbnail'),
-	));
+		'public'        => false,
+		'show_ui'       => true,
+		'show_in_menu'  => true,
+		'menu_icon'     => 'dashicons-images-alt2',
+		'supports'      => array( 'title', 'thumbnail', 'page-attributes' ),
+	) );
 
-	// Taxonomie: Slider (Gruppe)
-	register_taxonomy('hcs_slider', 'hcs_slide', array(
+	register_taxonomy( 'hcs_slider', 'hcs_slide', array(
 		'labels' => array(
-			'name' => 'Slider',
+			'name'          => 'Slider',
 			'singular_name' => 'Slider',
-			'add_new_item' => 'Neuen Slider anlegen',
-			'edit_item' => 'Slider bearbeiten',
+			'add_new_item'  => 'Neuen Slider anlegen',
+			'edit_item'     => 'Slider bearbeiten',
 		),
-		'public' => false,
-		'show_ui' => true,
-		'hierarchical' => false,
+		'public'            => false,
+		'show_ui'           => true,
+		'hierarchical'      => false,
 		'show_admin_column' => true,
-	));
+	) );
 }
-add_action('init', 'hcs_register_cpt_tax');
+add_action( 'init', 'hcs_register_cpt_tax' );
