@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PLUGIN_SLUG: hero-countdown-slider
-      PLUGIN_MAIN: hero-countdown-slider.php
+      PLUGIN_DIR: hero-countdown-slider
+      PLUGIN_MAIN: hero-countdown-slider/hero-countdown-slider.php
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,30 +22,39 @@ jobs:
       - name: Version aus Header lesen
         id: v
         run: |
-          VER=$(grep -iE '^ \* Version:' "$PLUGIN_MAIN" | sed -E 's/.*Version:\s*//')
+          # toleranter Regex für " * Version: 1.2.3"
+          VER=$(grep -iE '^[[:space:]]*\*[[:space:]]*Version:' "$PLUGIN_MAIN" | sed -E 's/.*Version:[[:space:]]*//')
           if [ -z "$VER" ]; then
-            echo "Keine Version im Header gefunden"; exit 1;
+            echo "Keine Version im Header gefunden in $PLUGIN_MAIN"; exit 1;
           fi
           echo "version=$VER" >> $GITHUB_OUTPUT
           echo "Version: $VER"
+
+      - name: Git user (für Tag-Push)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Tag erstellen falls neu
         run: |
           TAG="v${{ steps.v.outputs.version }}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG existiert bereits – wir erstellen trotzdem ein Release (wird aktualisiert)."
+            echo "Tag $TAG existiert bereits – wir benutzen ihn."
           else
             git tag "$TAG"
             git push origin "$TAG"
           fi
 
-      - name: ZIP bauen
+      - name: ZIP bauen (Ordner verpacken)
         run: |
           mkdir -p dist
-          cd hero-countdown-slider          
-          zip -r "dist/${{ env.PLUGIN_SLUG }}.zip" . \
-            -x "dist/*" ".git/*" ".github/*" "*.gitignore" \
-               "node_modules/*" ".DS_Store"
+          # Das ZIP enthält den Ordner hero-countdown-slider als Top-Level (so erwartet WP/PUC es)
+          zip -r "dist/${{ env.PLUGIN_SLUG }}.zip" "${{ env.PLUGIN_DIR }}" \
+            -x "${{ env.PLUGIN_DIR }}/.git/*" \
+               "${{ env.PLUGIN_DIR }}/.github/*" \
+               "${{ env.PLUGIN_DIR }}/node_modules/*" \
+               "${{ env.PLUGIN_DIR }}/dist/*" \
+               "**/.DS_Store"
 
       - name: Release erstellen/aktualisieren
         uses: softprops/action-gh-release@v2
