@@ -1,0 +1,119 @@
+.hcs-slider {
+    position: relative;
+    width: 100%;
+    height: var(--hcs-height, 60vh);
+    border-radius: var(--hcs-radius, 24px);
+    overflow: hidden;
+    background: #111;
+    color: #fff;
+  }
+  
+  .hcs-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform .5s ease;
+  }
+  
+  .hcs-slide {
+    position: relative;
+    min-width: 100%;
+    height: 100%;
+  }
+  
+  .hcs-bg {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.8);
+  }
+  
+  .hcs-content {
+    position: absolute;
+    inset: auto 5% 8% 5%;
+    display: grid;
+    gap: .75rem;
+    max-width: 900px;
+  }
+  
+  .hcs-logo {
+    height: 56px;
+    width: auto;
+  }
+  
+  .hcs-title {
+    margin: 0;
+    font-size: clamp(1.5rem, 3.5vw, 3rem);
+    line-height: 1.1;
+  }
+  
+  .hcs-subtitle {
+    margin: 0;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    opacity: .95;
+  }
+  
+  .hcs-countdown {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-weight: 600;
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
+    background: rgba(0,0,0,.35);
+    padding: .4rem .6rem;
+    border-radius: 10px;
+    width: max-content;
+  }
+  
+  .hcs-cta {
+    display: inline-block;
+    font-size: .9rem;
+    padding: .5rem .8rem;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    text-decoration: none;
+  }
+  .hcs-cta:hover { opacity: .9; }
+  
+  .hcs-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,.75);
+    color: #111;
+    cursor: pointer;
+  }
+  .hcs-prev { left: 10px; }
+  .hcs-next { right: 10px; }
+  
+  .hcs-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    display: flex; gap: 8px;
+  }
+  .hcs-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: none; background: rgba(255,255,255,.6);
+  }
+  .hcs-dot.is-active, .hcs-dot:hover { background: #fff; }
+  
+  .hcs-empty {
+    display: grid; place-items: center;
+    height: 100%;
+    color: #ccc;
+  }
+  
+  /* Editor-Styles (vereinfachtes Layout der Slide-Form) */
+  .hcs-editor-wrap { display: grid; gap: 16px; }
+  .hcs-slide-card { border: 1px solid #e1e1e1; padding: 12px; border-radius: 12px; background: #fff; }
+  .hcs-row { display: flex; align-items: center; gap: 12px; }
+  .hcs-thumb { width: 120px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+  .hcs-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .hcs-slide-actions { display: flex; gap: 8px; margin-top: 8px; }
+  

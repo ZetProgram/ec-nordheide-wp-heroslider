@@ -1,0 +1,24 @@
+{
+  "apiVersion": 3,
+  "name": "we/hero-countdown-slider",
+  "title": "Hero Countdown Slider",
+  "category": "design",
+  "icon": { "src": "hero-countdown-slider/assets/icon.svg" },
+  "description": "Zeigt die Slides aus einer gewählten Slider-Gruppe.",
+  "supports": {
+    "align": ["full", "wide"],
+    "spacing": { "padding": true, "margin": true }
+  },
+  "attributes": {
+    "sliderGroup": { "type": "integer", "default": 0 },
+    "autoplay": { "type": "boolean", "default": true },
+    "autoplayDelay": { "type": "number", "default": 5000 },
+    "showDots": { "type": "boolean", "default": true },
+    "showArrows": { "type": "boolean", "default": true },
+    "height": { "type": "string", "default": "60vh" },
+    "borderRadius": { "type": "string", "default": "24px" }
+  },
+  "editorScript": "we-hero-slider-editor",
+  "script": "we-hero-slider-view",
+  "style": "we-hero-slider-style"
+}
