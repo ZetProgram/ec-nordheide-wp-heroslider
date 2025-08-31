@@ -14,54 +14,62 @@ function hcs_render_block( $attributes, $content, $block ) {
 			array(
 				'taxonomy' => 'hcs_slider',
 				'field'    => 'term_id',
-				'terms'    => $group_id,
+				'terms'    => array( $group_id ),
 			),
 		),
-		'orderby'       => 'menu_order',
-		'order'         => 'ASC',
+		'orderby'   => 'menu_order',
+		'order'     => 'ASC',
 		'no_found_rows' => true,
 	) );
 
+	$now = time();
 	$slides = array();
-	$now = current_time( 'timestamp' );
+	if ( $q->have_posts() ) {
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			$id = get_the_ID();
 
-	while ( $q->have_posts() ) {
-		$q->the_post();
-		$id = get_the_ID();
+			$is_active  = get_post_meta( $id, '_hcs_is_active', true ) === '1';
+			$expires    = get_post_meta( $id, '_hcs_expires_at', true );
+			$expires_ts = $expires ? strtotime( $expires ) : null;
 
-		$is_active  = get_post_meta( $id, '_hcs_is_active', true ) === '1';
-		$expires    = get_post_meta( $id, '_hcs_expires_at', true );
-		$expires_ts = $expires ? strtotime( $expires ) : null;
+			if ( ! $is_active ) continue;
+			if ( $expires_ts && $expires_ts <= $now ) continue;
 
-		if ( ! $is_active ) continue;
-		if ( $expires_ts && $expires_ts <= $now ) continue;
-
-		$img = get_the_post_thumbnail_url( $id, 'full' );
-
-		$slides[] = array(
-			'imageUrl'    => $img ?: '',
-			'title'       => get_post_meta( $id, '_hcs_title', true ),
-			'subtitle'    => get_post_meta( $id, '_hcs_subtitle', true ),
-			'logoUrl'     => ( $lid = get_post_meta( $id, '_hcs_logo_id', true ) ) ? wp_get_attachment_image_url( (int) $lid, 'full' ) : '',
-			'showLogo'    => get_post_meta( $id, '_hcs_show_logo', true ) === '1',
-			'countdownTo' => get_post_meta( $id, '_hcs_countdown', true ),
-			'ctaLabel'    => get_post_meta( $id, '_hcs_cta_label', true ),
-			'ctaUrl'      => get_post_meta( $id, '_hcs_cta_url', true ),
-			'ctaNofollow' => get_post_meta( $id, '_hcs_cta_nf', true ) === '1',
-			'expiresAt'   => $expires ?: '',
-			'isActive'    => true,
-		);
+			$img = get_the_post_thumbnail_url( $id, 'full' );
+			$lid = get_post_meta( $id, '_hcs_logo_id', true );
+			$slides[] = array(
+				'imageUrl'    => $img ?: '',
+				'title'       => get_post_meta( $id, '_hcs_title', true ),
+				'subtitle'    => get_post_meta( $id, '_hcs_subtitle', true ),
+				'logoUrl'     => $lid ? wp_get_attachment_image_url( (int) $lid, 'full' ) : '',
+				'showLogo'    => get_post_meta( $id, '_hcs_show_logo', true ) === '1',
+				'countdownTo' => get_post_meta( $id, '_hcs_countdown', true ),
+				'ctaLabel'    => get_post_meta( $id, '_hcs_cta_label', true ),
+				'ctaUrl'      => get_post_meta( $id, '_hcs_cta_url', true ),
+				'ctaNofollow' => get_post_meta( $id, '_hcs_cta_nf', true ) === '1',
+				'expiresAt'   => $expires ?: '',
+				'isActive'    => true,
+			);
+		}
+		wp_reset_postdata();
 	}
-	wp_reset_postdata();
 
 	$props = array(
-		'slides'       => $slides,
-		'autoplay'     => ! empty( $attributes['autoplay'] ),
-		'autoplayDelay'=> intval( $attributes['autoplayDelay'] ?? 5000 ),
-		'showDots'     => ! empty( $attributes['showDots'] ),
-		'showArrows'   => ! empty( $attributes['showArrows'] ),
-		'height'       => $attributes['height'] ?? '60vh',
-		'borderRadius' => $attributes['borderRadius'] ?? '24px',
+		'slides'         => $slides,
+		'autoplay'       => ! empty( $attributes['autoplay'] ),
+		'autoplayDelay'  => intval( $attributes['autoplayDelay'] ?? 5000 ),
+		'pauseOnHover'   => ! empty( $attributes['pauseOnHover'] ),
+		'showDots'       => ! empty( $attributes['showDots'] ),
+		'showArrows'     => ! empty( $attributes['showArrows'] ),
+		'heightMode'     => $attributes['heightMode'] ?? 'adaptive',
+		'minHeight'      => $attributes['minHeight'] ?? '320px',
+		'vhHeight'       => $attributes['vhHeight'] ?? '60vh',
+		'maxHeight'      => $attributes['maxHeight'] ?? '680px',
+		'height'         => $attributes['height'] ?? '60vh',
+		'borderRadius'   => $attributes['borderRadius'] ?? '24px',
+		'showConfetti'   => ! empty( $attributes['showConfetti'] ),
+		'endScreenMessage' => $attributes['endScreenMessage'] ?? '🎉 Los geht\'s!',
 	);
 
 	$html = '<div class="hcs-slider" data-props=\'' . esc_attr( wp_json_encode( $props ) ) . '\'></div>';
