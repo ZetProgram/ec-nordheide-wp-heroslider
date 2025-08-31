@@ -14,6 +14,8 @@ function hcs_register_cpt_tax() {
 		'show_in_menu'  => true,
 		'menu_icon'     => 'dashicons-images-alt2',
 		'supports'      => array( 'title', 'thumbnail', 'page-attributes' ),
+		'show_in_rest' => true,
+		'supports'     => ['title', 'editor', 'thumbnail', 'page-attributes'],
 	) );
 
 	register_taxonomy( 'hcs_slider', 'hcs_slide', array(
