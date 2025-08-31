@@ -83,6 +83,11 @@
               label: __('Pfeile anzeigen','hcs'),
               checked: !!showArrows,
               onChange: (v)=>setAttributes({showArrows: !!v})
+            } ),
+            wp.element.createElement( ToggleControl, {
+              label: __('Hero Modus (volle Breite)','hcs'),
+              checked: !!heroMode,
+              onChange: (v)=> setAttributes({heroMode: !!v})
             } )
           ),
 

@@ -18,3 +18,25 @@
 @media (prefers-reduced-motion: reduce) {
   .hcs-track{ transition:none; }
 }
+/* Hero Mode: volle Breite */
+.hcs-slider.hcs-hero {
+  width: 100vw;       /* volle Bildschirmbreite */
+  max-width: 100vw;
+  margin-left: calc(-50vw + 50%); /* zentriert auch in Containern */
+  border-radius: 0;   /* optional: keine Rundungen */
+}
+
+/* Zentrierte Inhalte im Overlay */
+.hcs-slider.hcs-hero .hcs-overlay {
+  justify-content: center;   /* vertikal */
+  align-items: center;       /* horizontal */
+  text-align: center;
+}
+
+.hcs-slider.hcs-hero .hcs-title,
+.hcs-slider.hcs-hero .hcs-subtitle,
+.hcs-slider.hcs-hero .hcs-countdown,
+.hcs-slider.hcs-hero .hcs-cta {
+  margin-left: auto;
+  margin-right: auto;
+}

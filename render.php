@@ -63,8 +63,12 @@ function hcs_render_block( $attributes, $content, $block ) {
 		'showConfetti'   => ! empty( $attributes['showConfetti'] ),
 		'endScreenMessage' => $attributes['endScreenMessage'] ?? '🎉 Los geht\'s!',
 	);
+	$classes = 'hcs-slider';
+	if ( !empty($attributes['heroMode']) ) {
+		$classes .= ' hcs-hero';
+	}
 
-	$html = '<div class="hcs-slider" data-props=\'' . esc_attr( wp_json_encode( $props ) ) . '\'></div>';
+	$html = '<div class="' . esc_attr($classes) . '" data-props=\'' . esc_attr( wp_json_encode( $props ) ) . '\'></div>';
 
 	wp_enqueue_script( 'we-hero-slider-view' );
 	wp_enqueue_style( 'we-hero-slider-style' );
