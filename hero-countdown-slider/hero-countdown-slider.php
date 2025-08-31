@@ -139,32 +139,7 @@ add_action('plugins_loaded', function () {
 		}
 	}
 
-	// 5) PRIVATES REPO → Authentifizierung (eine Variante reicht)
-	//    a) Hart codierter Token (⚠️ Sicherheitsrisiko – nur "Contents: Read" für genau dieses Repo vergeben!)
-	$hardcoded_token = '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'; // <<< HIER DEIN (neuer) TOKEN, nicht den geleakten!
-	if (!empty($hardcoded_token) && $hardcoded_token !== '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') {
-		if (method_exists($update_checker, 'setAuthentication')) {
-			$update_checker->setAuthentication($hardcoded_token);
-		}
-		return;
-	}
+	$hardcoded_token = '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';
+$update_checker->setAuthentication($hardcoded_token);
 
-	//    b) Fallback: Konstanten/Umgebung (empfohlen)
-	if (defined('HCS_GH_TOKEN') && HCS_GH_TOKEN) {
-		if (method_exists($update_checker, 'setAuthentication')) {
-			$update_checker->setAuthentication(HCS_GH_TOKEN);
-		}
-		return;
-	}
-	if (!empty($_ENV['HCS_GH_TOKEN'])) {
-		if (method_exists($update_checker, 'setAuthentication')) {
-			$update_checker->setAuthentication($_ENV['HCS_GH_TOKEN']);
-		}
-		return;
-	}
-
-	//    c) Kein Token gesetzt (Info, aber kein Fatal)
-	add_action('admin_notices', function () {
-		echo '<div class="notice notice-info"><p><strong>Hero Countdown Slider:</strong> Kein GitHub-Token gesetzt. Updates aus privatem Repo sind ohne Token nicht möglich.</p></div>';
-	});
 });
