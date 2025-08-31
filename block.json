@@ -1,12 +1,10 @@
 {
   "apiVersion": 3,
-  "name": "we/hero-countdown-slider",
+  "name": "hcs/hero-slider",
   "title": "Hero Countdown Slider",
   "category": "design",
-  "icon": {
-    "src": "hero-countdown-slider/assets/icon.svg"
-  },
-  "description": "Zeigt ausgewählte Slides (CPT) als Hero-Slider mit Countdown & CTA – ohne Gruppen.",
+  "icon": "images-alt2",
+  "description": "Zeigt ausgewählte Slides (CPT) als Hero-Slider mit Countdown & CTA.",
   "supports": {
     "align": [
       "full",
@@ -18,61 +16,9 @@
     }
   },
   "attributes": {
-    "slideIds": {
+    "slides": {
       "type": "array",
       "default": []
-    },
-    "autoplay": {
-      "type": "boolean",
-      "default": true
-    },
-    "autoplayDelay": {
-      "type": "number",
-      "default": 5000
-    },
-    "pauseOnHover": {
-      "type": "boolean",
-      "default": true
-    },
-    "showDots": {
-      "type": "boolean",
-      "default": true
-    },
-    "showArrows": {
-      "type": "boolean",
-      "default": true
-    },
-    "heightMode": {
-      "type": "string",
-      "default": "adaptive"
-    },
-    "minHeight": {
-      "type": "string",
-      "default": "320px"
-    },
-    "vhHeight": {
-      "type": "string",
-      "default": "60vh"
-    },
-    "maxHeight": {
-      "type": "string",
-      "default": "680px"
-    },
-    "height": {
-      "type": "string",
-      "default": "60vh"
-    },
-    "borderRadius": {
-      "type": "string",
-      "default": "24px"
-    },
-    "showConfetti": {
-      "type": "boolean",
-      "default": true
-    },
-    "endScreenMessage": {
-      "type": "string",
-      "default": "🎉 Los geht's!"
     }
   },
   "editorScript": "we-hero-slider-editor",
