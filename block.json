@@ -6,7 +6,7 @@
   "icon": {
     "src": "hero-countdown-slider/assets/icon.svg"
   },
-  "description": "Zeigt die Slides aus einer gewählten Slider-Gruppe (CPT) als Hero-Slider mit Countdown & CTA.",
+  "description": "Zeigt ausgewählte Slides (CPT) als Hero-Slider mit Countdown & CTA – ohne Gruppen.",
   "supports": {
     "align": [
       "full",
@@ -18,9 +18,9 @@
     }
   },
   "attributes": {
-    "sliderGroup": {
-      "type": "integer",
-      "default": 0
+    "slideIds": {
+      "type": "array",
+      "default": []
     },
     "autoplay": {
       "type": "boolean",

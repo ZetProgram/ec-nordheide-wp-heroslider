@@ -1,36 +1,46 @@
-
 ( function ( wp ) {
   const { __ } = wp.i18n;
   const { InspectorControls, useBlockProps } = wp.blockEditor || wp.editor;
-  const { PanelBody, SelectControl, ToggleControl, RangeControl, TextControl, __experimentalNumberControl: NumberControl } = wp.components;
+  const { PanelBody, SelectControl, ToggleControl, TextControl, __experimentalNumberControl: NumberControl } = wp.components;
   const { useEffect, useState } = wp.element;
   const ServerSideRender = wp.serverSideRender || wp.components.ServerSideRender;
 
-  wp.blocks.registerBlockVariation && wp.blocks.registerBlockStyle; // keep bundlers quiet
+  // --- Neue Mehrfachauswahl für Slides (statt Gruppen) ---
+  function SlideSelect( { value, onChange } ) {
+    const [slides, setSlides] = useState( [] );
 
-  function SliderGroupSelect( { value, onChange } ) {
-    const [terms, setTerms] = useState( [] );
     useEffect( () => {
-      wp.apiFetch( { path: '/wp/v2/hcs_slider?per_page=100' } )
-        .then( (res) => setTerms( res || [] ) )
-        .catch( () => setTerms( [] ) );
+      // Alle hcs_slide Beiträge holen
+      wp.apiFetch( { path: '/wp/v2/hcs_slide?per_page=100&orderby=menu_order&order=asc' } )
+        .then( (res) => setSlides( Array.isArray(res) ? res : [] ) )
+        .catch( () => setSlides( [] ) );
     }, [] );
-    const options = [ { label: __('— Gruppe wählen —','hcs'), value: 0 } ].concat(
-      terms.map( t => ( { label: t.name, value: t.id } ) )
-    );
+
+    const options = slides.map( s => ( { label: s?.title?.rendered || `Slide #${s.id}`, value: s.id } ) );
+
     return wp.element.createElement( SelectControl, {
-      label: __('Slider-Gruppe','hcs'),
-      value: value || 0,
+      label: __('Slides auswählen','hcs'),
+      multiple: true,
+      value: Array.isArray(value) ? value : [],
       options,
-      onChange: (val)=> onChange( parseInt(val,10) || 0 )
+      onChange: (vals) => {
+        // SelectControl liefert Strings → in Zahlen umwandeln
+        const ids = (vals || []).map(v => parseInt(v,10)).filter(Boolean);
+        onChange(ids);
+      },
+      help: __('Wähle eine oder mehrere Slides. Die Reihenfolge im Frontend entspricht der Auswahlreihenfolge.','hcs')
     } );
   }
 
   function Edit( props ) {
     const { attributes, setAttributes } = props;
-    const { sliderGroup, autoplay, autoplayDelay, pauseOnHover, showDots, showArrows,
-            heightMode, minHeight, vhHeight, maxHeight, height, borderRadius,
-            showConfetti, endScreenMessage } = attributes;
+    const {
+      // NEU: slideIds statt sliderGroup
+      slideIds = [],
+      autoplay, autoplayDelay, pauseOnHover, showDots, showArrows,
+      heightMode, minHeight, vhHeight, maxHeight, height, borderRadius,
+      showConfetti, endScreenMessage
+    } = attributes;
 
     const blockProps = useBlockProps();
 
@@ -39,9 +49,15 @@
       blockProps,
       [
         wp.element.createElement( InspectorControls, { key: 'inspector' },
+          // Panel: Inhalte / Auswahl
           wp.element.createElement( PanelBody, { title: __('Inhalte','hcs'), initialOpen: true },
-            wp.element.createElement( SliderGroupSelect, { value: sliderGroup, onChange: (v)=>setAttributes({sliderGroup:v}) } ),
+            wp.element.createElement( SlideSelect, {
+              value: slideIds,
+              onChange: (ids)=> setAttributes({ slideIds: ids })
+            } ),
           ),
+
+          // Panel: Slider-Optionen
           wp.element.createElement( PanelBody, { title: __('Slider','hcs'), initialOpen: true },
             wp.element.createElement( ToggleControl, {
               label: __('Autoplay','hcs'),
@@ -69,6 +85,8 @@
               onChange: (v)=>setAttributes({showArrows: !!v})
             } )
           ),
+
+          // Panel: Höhe & Layout
           wp.element.createElement( PanelBody, { title: __('Höhe & Layout','hcs'), initialOpen: true },
             wp.element.createElement( SelectControl, {
               label: __('Höhenmodus','hcs'),
@@ -86,6 +104,8 @@
             ] : wp.element.createElement( TextControl, { key:'fixed', label: __('Höhe','hcs'), help: __('z. B. 60vh oder 600px','hcs'), value: height, onChange: (v)=> setAttributes({height:v}) } ),
             wp.element.createElement( TextControl, { key:'radius', label: __('Border Radius','hcs'), value: borderRadius, onChange: (v)=> setAttributes({borderRadius:v}) } )
           ),
+
+          // Panel: Countdown & Finale
           wp.element.createElement( PanelBody, { title: __('Countdown & Finale','hcs'), initialOpen: false },
             wp.element.createElement( ToggleControl, {
               label: __('Konfetti bei Ablauf','hcs'),
@@ -99,10 +119,12 @@
             } )
           )
         ),
+
+        // Live-Vorschau
         wp.element.createElement( 'div', { key:'preview' },
           wp.element.createElement( ServerSideRender, {
             block: 'we/hero-countdown-slider',
-            attributes
+            attributes: { ...attributes, slideIds } // sicherstellen, dass slideIds drin sind
           } )
         )
       ]

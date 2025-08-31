@@ -2,26 +2,18 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 function hcs_render_block( $attributes, $content, $block ) {
-	$group_id = intval( $attributes['sliderGroup'] ?? 0 );
-	if ( ! $group_id ) {
-		return '<div class="hcs-slider"><div class="hcs-empty">Kein Slider ausgewählt.</div></div>';
+	$ids = array_map( 'intval', $attributes['slideIds'] ?? [] );
+	if ( empty( $ids ) ) {
+	return '<div class="hcs-slider"><div class="hcs-empty">Keine Slides ausgewählt.</div></div>';
 	}
 
 	$q = new WP_Query( array(
 		'post_type'      => 'hcs_slide',
+		'post__in'       => $ids,
+		'orderby'        => 'post__in',
 		'posts_per_page' => -1,
-		'tax_query'      => array(
-			array(
-				'taxonomy' => 'hcs_slider',
-				'field'    => 'term_id',
-				'terms'    => array( $group_id ),
-			),
-		),
-		'orderby'   => 'menu_order',
-		'order'     => 'ASC',
-		'no_found_rows' => true,
+		'no_found_rows'  => true,
 	) );
-
 	$now = time();
 	$slides = array();
 	if ( $q->have_posts() ) {
