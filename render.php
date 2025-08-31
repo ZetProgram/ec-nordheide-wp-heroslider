@@ -1,77 +1,29 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit;
+function hcs_render_hero_slider($attributes) {
+    if (empty($attributes['slides'])) {
+        return '<p>' . __('Keine Slides ausgewählt.', 'hcs') . '</p>';
+    }
 
-function hcs_render_block( $attributes, $content, $block ) {
-	$ids = array_map( 'intval', $attributes['slideIds'] ?? [] );
-	if ( empty( $ids ) ) {
-	return '<div class="hcs-slider"><div class="hcs-empty">Keine Slides ausgewählt.</div></div>';
-	}
+    $html = '<div class="hcs-hero-slider w-full">';
 
-	$q = new WP_Query( array(
-		'post_type'      => 'hcs_slide',
-		'post__in'       => $ids,
-		'orderby'        => 'post__in',
-		'posts_per_page' => -1,
-		'no_found_rows'  => true,
-	) );
-	$now = time();
-	$slides = array();
-	if ( $q->have_posts() ) {
-		while ( $q->have_posts() ) {
-			$q->the_post();
-			$id = get_the_ID();
+    foreach ($attributes['slides'] as $slide_id) {
+        $title = get_the_title($slide_id);
+        $content = apply_filters('the_content', get_post_field('post_content', $slide_id));
+        $image = get_the_post_thumbnail_url($slide_id, 'full');
 
-			$is_active  = get_post_meta( $id, '_hcs_is_active', true ) === '1';
-			$expires    = get_post_meta( $id, '_hcs_expires_at', true );
-			$expires_ts = $expires ? strtotime( $expires ) : null;
+        $html .= '<div class="hcs-slide" style="background-image:url(' . esc_url($image) . ')">';
+        $html .= '<div class="hcs-slide-inner">';
+        $html .= '<h2 class="hcs-slide-title">' . esc_html($title) . '</h2>';
+        $html .= '<div class="hcs-slide-content">' . $content . '</div>';
+        $html .= '</div>'; // inner
+        $html .= '</div>'; // slide
+    }
 
-			if ( ! $is_active ) continue;
-			if ( $expires_ts && $expires_ts <= $now ) continue;
+    $html .= '</div>';
 
-			$img = get_the_post_thumbnail_url( $id, 'full' );
-			$lid = get_post_meta( $id, '_hcs_logo_id', true );
-			$slides[] = array(
-				'imageUrl'    => $img ?: '',
-				'title'       => get_post_meta( $id, '_hcs_title', true ),
-				'subtitle'    => get_post_meta( $id, '_hcs_subtitle', true ),
-				'logoUrl'     => $lid ? wp_get_attachment_image_url( (int) $lid, 'full' ) : '',
-				'showLogo'    => get_post_meta( $id, '_hcs_show_logo', true ) === '1',
-				'countdownTo' => get_post_meta( $id, '_hcs_countdown', true ),
-				'ctaLabel'    => get_post_meta( $id, '_hcs_cta_label', true ),
-				'ctaUrl'      => get_post_meta( $id, '_hcs_cta_url', true ),
-				'ctaNofollow' => get_post_meta( $id, '_hcs_cta_nf', true ) === '1',
-				'expiresAt'   => $expires ?: '',
-				'isActive'    => true,
-			);
-		}
-		wp_reset_postdata();
-	}
-
-	$props = array(
-		'slides'         => $slides,
-		'autoplay'       => ! empty( $attributes['autoplay'] ),
-		'autoplayDelay'  => intval( $attributes['autoplayDelay'] ?? 5000 ),
-		'pauseOnHover'   => ! empty( $attributes['pauseOnHover'] ),
-		'showDots'       => ! empty( $attributes['showDots'] ),
-		'showArrows'     => ! empty( $attributes['showArrows'] ),
-		'heightMode'     => $attributes['heightMode'] ?? 'adaptive',
-		'minHeight'      => $attributes['minHeight'] ?? '320px',
-		'vhHeight'       => $attributes['vhHeight'] ?? '60vh',
-		'maxHeight'      => $attributes['maxHeight'] ?? '680px',
-		'height'         => $attributes['height'] ?? '60vh',
-		'borderRadius'   => $attributes['borderRadius'] ?? '24px',
-		'showConfetti'   => ! empty( $attributes['showConfetti'] ),
-		'endScreenMessage' => $attributes['endScreenMessage'] ?? '🎉 Los geht\'s!',
-	);
-	$classes = 'hcs-slider';
-	if ( !empty($attributes['heroMode']) ) {
-		$classes .= ' hcs-hero';
-	}
-
-	$html = '<div class="' . esc_attr($classes) . '" data-props=\'' . esc_attr( wp_json_encode( $props ) ) . '\'></div>';
-
-	wp_enqueue_script( 'we-hero-slider-view' );
-	wp_enqueue_style( 'we-hero-slider-style' );
-
-	return $html;
+    return $html;
 }
+
+register_block_type('hcs/hero-slider', [
+    'render_callback' => 'hcs_render_hero_slider',
+]);
