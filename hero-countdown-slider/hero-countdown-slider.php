@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Hero Countdown Slider
  * Description: Hero-Bannerslider mit Countdown/CTA. Slides im Backend pflegen, Block zeigt eine gewählte Slider-Gruppe.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Fabian Bross
  * Requires at least: 5.8
  * Tested up to: 6.6
@@ -74,7 +74,7 @@ add_action('init', 'hcs_register_assets_and_block');
 require_once HCS_PLUGIN_DIR . 'render.php';
 
 /**
- * Plugin Update Checker (GitHub Releases, privates Repo, hart codierter Token möglich)
+ * Plugin Update Checker (GitHub Releases, privates Repo)
  * - Repo: ZetProgram/ec-nordheide-wp-heroslider
  * - Branch: production
  * - nutzt Release Assets (ZIP vom Release)
@@ -83,52 +83,87 @@ add_action('plugins_loaded', function () {
 
 	// 1) PUC-Library defensiv laden (kein Crash, wenn fehlt)
 	$puc_paths = array(
-		HCS_PLUGIN_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php',               // manuell
-		HCS_PLUGIN_DIR . 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php', // falls via Composer
+		HCS_PLUGIN_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php',               // manuell (empfohlen)
+		HCS_PLUGIN_DIR . 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php', // Composer-Variante
 	);
 	$puc_loaded = false;
 	foreach ($puc_paths as $path) {
 		if (file_exists($path)) { require_once $path; $puc_loaded = true; break; }
 	}
-	if (!$puc_loaded || !class_exists('Puc_v4_Factory')) {
+	if (!$puc_loaded) {
 		add_action('admin_notices', function () {
 			echo '<div class="notice notice-warning"><p><strong>Hero Countdown Slider:</strong> Update-Checker nicht gefunden. Erwarte <code>vendor/plugin-update-checker/plugin-update-checker.php</code> im Plugin.</p></div>';
 		});
 		return;
 	}
 
-	// 2) Update-Checker konfigurieren
-	$update_checker = Puc_v4_Factory::buildUpdateChecker(
-		'https://github.com/ZetProgram/ec-nordheide-wp-heroslider/', // Repo-URL
-		__FILE__,                                                    // Hauptdatei
-		'hero-countdown-slider'                                     // Slug = Ordnername
-	);
-
-	// Branch + Release-Assets (ZIP aus GitHub Releases)
-	$update_checker->setBranch('production');
-	if ($api = $update_checker->getVcsApi()) {
-		$api->enableReleaseAssets();
-	}
-
-	// 3) PRIVATES REPO → Authentifizierung
-	//    a) Hart codierter Token (⚠️ Sicherheitsrisiko – nutze möglichst nur "Contents: Read")
-	$hardcoded_token = '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'; // <<< HIER DEIN TOKEN EINTRAGEN
-	if (!empty($hardcoded_token) && $hardcoded_token !== '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') {
-		$update_checker->setAuthentication($hardcoded_token);
+	// 2) Factory-Klasse ermitteln (v5 bevorzugt, Fallback v4)
+	$factoryClass = null;
+	if (class_exists('\\YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory')) {
+		$factoryClass = '\\YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory';
+	} elseif (class_exists('Puc_v5_Factory')) {
+        // manche Bundles exportieren zusätzlich eine globale v5-Factory
+        $factoryClass = 'Puc_v5_Factory';
+	} elseif (class_exists('Puc_v4_Factory')) {
+		$factoryClass = 'Puc_v4_Factory';
+	} else {
+		add_action('admin_notices', function () {
+			echo '<div class="notice notice-warning"><p><strong>Hero Countdown Slider:</strong> Keine PUC-Factory gefunden (v5/v4). Prüfe deinen <code>vendor/</code>-Ordner.</p></div>';
+		});
 		return;
 	}
 
-	//    b) Fallback: Konstanten/Umgebung (wenn du später umstellen willst)
+	// 3) Update-Checker instanziieren
+	if ($factoryClass === '\\YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory') {
+		/** @var \YahnisElsts\PluginUpdateChecker\v5\PucFactory $factoryClass */
+		$update_checker = $factoryClass::buildUpdateChecker(
+			'https://github.com/ZetProgram/ec-nordheide-wp-heroslider/',
+			__FILE__,
+			'hero-countdown-slider'
+		);
+	} else {
+		// v5 global oder v4 ohne Namespace
+		$update_checker = $factoryClass::buildUpdateChecker(
+			'https://github.com/ZetProgram/ec-nordheide-wp-heroslider/',
+			__FILE__,
+			'hero-countdown-slider'
+		);
+	}
+
+	// 4) Branch + Release-Assets (ZIP aus GitHub Releases)
+	$update_checker->setBranch('production');
+	if (method_exists($update_checker, 'getVcsApi')) {
+		$api = $update_checker->getVcsApi();
+		if ($api && method_exists($api, 'enableReleaseAssets')) {
+			$api->enableReleaseAssets();
+		}
+	}
+
+	// 5) PRIVATES REPO → Authentifizierung (eine Variante reicht)
+	//    a) Hart codierter Token (⚠️ Sicherheitsrisiko – nur "Contents: Read" für genau dieses Repo vergeben!)
+	$hardcoded_token = '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'; // <<< HIER DEIN (neuer) TOKEN, nicht den geleakten!
+	if (!empty($hardcoded_token) && $hardcoded_token !== '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') {
+		if (method_exists($update_checker, 'setAuthentication')) {
+			$update_checker->setAuthentication($hardcoded_token);
+		}
+		return;
+	}
+
+	//    b) Fallback: Konstanten/Umgebung (empfohlen)
 	if (defined('HCS_GH_TOKEN') && HCS_GH_TOKEN) {
-		$update_checker->setAuthentication(HCS_GH_TOKEN);
+		if (method_exists($update_checker, 'setAuthentication')) {
+			$update_checker->setAuthentication(HCS_GH_TOKEN);
+		}
 		return;
 	}
 	if (!empty($_ENV['HCS_GH_TOKEN'])) {
-		$update_checker->setAuthentication($_ENV['HCS_GH_TOKEN']);
+		if (method_exists($update_checker, 'setAuthentication')) {
+			$update_checker->setAuthentication($_ENV['HCS_GH_TOKEN']);
+		}
 		return;
 	}
 
-	//    c) Wenn gar kein Token gesetzt wurde, Admin-Hinweis (aber kein Fatal)
+	//    c) Kein Token gesetzt (Info, aber kein Fatal)
 	add_action('admin_notices', function () {
 		echo '<div class="notice notice-info"><p><strong>Hero Countdown Slider:</strong> Kein GitHub-Token gesetzt. Updates aus privatem Repo sind ohne Token nicht möglich.</p></div>';
 	});
