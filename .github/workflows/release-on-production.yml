@@ -12,7 +12,7 @@ jobs:
     env:
       PLUGIN_SLUG: hero-countdown-slider
       PLUGIN_DIR: hero-countdown-slider
-      PLUGIN_MAIN: hero-countdown-slider/hero-countdown-slider.php
+      PLUGIN_MAIN: hero-countdown-slider.php
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +22,6 @@ jobs:
       - name: Version aus Header lesen
         id: v
         run: |
-          # toleranter Regex für " * Version: 1.2.3"
           VER=$(grep -iE '^[[:space:]]*\*[[:space:]]*Version:' "$PLUGIN_MAIN" | sed -E 's/.*Version:[[:space:]]*//')
           if [ -z "$VER" ]; then
             echo "Keine Version im Header gefunden in $PLUGIN_MAIN"; exit 1;
@@ -45,16 +44,22 @@ jobs:
             git push origin "$TAG"
           fi
 
-      - name: ZIP bauen (Ordner verpacken)
+      - name: ZIP bauen (Root → Staging-Ordner → ZIP)
         run: |
-          mkdir -p dist
-          # Das ZIP enthält den Ordner hero-countdown-slider als Top-Level (so erwartet WP/PUC es)
-          zip -r "dist/${{ env.PLUGIN_SLUG }}.zip" "${{ env.PLUGIN_DIR }}" \
-            -x "${{ env.PLUGIN_DIR }}/.git/*" \
-               "${{ env.PLUGIN_DIR }}/.github/*" \
-               "${{ env.PLUGIN_DIR }}/node_modules/*" \
-               "${{ env.PLUGIN_DIR }}/dist/*" \
-               "**/.DS_Store"
+          set -e
+          mkdir -p dist "$PLUGIN_DIR"
+          rsync -a ./ "$PLUGIN_DIR"/ \
+            --exclude ".git/" \
+            --exclude ".github/" \
+            --exclude "node_modules/" \
+            --exclude "dist/" \
+            --exclude ".DS_Store" \
+            --exclude ".gitignore" \
+            --exclude ".gitattributes"
+          # ZIP enthält den Ordner $PLUGIN_DIR als Top-Level
+          cd "$(dirname "$PLUGIN_DIR")"
+          zip -r "dist/${{ env.PLUGIN_SLUG }}.zip" "$PLUGIN_DIR"
+          cd -
 
       - name: Release erstellen/aktualisieren
         uses: softprops/action-gh-release@v2
