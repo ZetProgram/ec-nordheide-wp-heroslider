@@ -1,19 +1,23 @@
 (function () {
   const { registerBlockType } = wp.blocks;
   const { __ } = wp.i18n;
-  const { createElement, useState, useEffect } = wp.element;
+  const { createElement } = wp.element;
   const { InspectorControls, useBlockProps } = wp.blockEditor;
-  const { PanelBody, Placeholder, ToggleControl, SelectControl, TextControl, Spinner, CheckboxControl } = wp.components;
+  const {
+    PanelBody, ToggleControl, SelectControl, TextControl, Spinner, CheckboxControl
+  } = wp.components;
   const { useSelect } = wp.data;
 
-  // ← HIER ggf. deinen CPT-Slug anpassen:
-  const CPT_SLUG = 'hcs_slide';
+  // ServerSideRender (WP < 6.5 fallback über wp.components)
+  const ServerSideRender = wp.serverSideRender || wp.components.ServerSideRender;
+
+  const CPT_SLUG = 'hcs_slide'; // ggf. anpassen
 
   function Edit(props) {
     const { attributes, setAttributes } = props;
     const blockProps = useBlockProps();
 
-    // Alle Slides aus dem CPT laden (REST)
+    // CPT-Slides laden
     const slidesPosts = useSelect(function (select) {
       return select('core').getEntityRecords('postType', CPT_SLUG, {
         per_page: -1, status: 'publish', _embed: true, orderby: 'title', order: 'asc'
@@ -21,7 +25,6 @@
     }, []);
     const isLoading = (slidesPosts === undefined);
 
-    // Hilfsfunktion: ID in Set toggeln
     function toggleSlide(id) {
       const next = new Set(attributes.slides || []);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -49,23 +52,10 @@
       );
     }
 
-    // Für Placeholder ausgewählte Titel ermitteln
-    var selectedTitles = (slidesPosts || [])
-      .filter(function (p) { return (attributes.slides || []).includes(p.id); })
-      .map(function (p) { return (p.title && p.title.rendered) ? p.title.rendered.replace(/<[^>]+>/g, '') : ('#' + p.id); });
-
-    function Info() {
-      return createElement(Placeholder, {
-        label: __('Hero / Bild Slider', 'hcs'),
-        instructions: (attributes.slides && attributes.slides.length)
-          ? __('Wird im Frontend gerendert. Ausgewählt:', 'hcs') + ' ' + (selectedTitles.join(', ') || attributes.slides.join(', '))
-          : __('Bitte im rechten Panel mindestens einen Slide auswählen.', 'hcs')
-      });
-    }
-
     return createElement(
       'div',
       blockProps,
+      // Inspector
       createElement(
         InspectorControls,
         null,
@@ -89,7 +79,6 @@
           }),
           createElement(ToggleControl, {
             label: __('Volle Breite (100vw)', 'hcs'),
-            help: __('Bricht aus dem Inhalts-Container aus (auch ohne Theme-Unterstützung).', 'hcs'),
             checked: !!attributes.fullWidth,
             onChange: function (v) { setAttributes({ fullWidth: !!v }); }
           }),
@@ -132,7 +121,12 @@
           createElement(ToggleControl, { label: __('Pause bei Hover', 'hcs'), checked: !!attributes.pauseOnHover, onChange: function (v) { setAttributes({ pauseOnHover: !!v }); } })
         )
       ),
-      createElement(Info, null)
+
+      // 🔥 Live-Vorschau: fragt deine render.php an und fügt das HTML in den Editor ein
+      createElement(ServerSideRender, {
+        block: 'hcs/hero-slider',
+        attributes: attributes
+      })
     );
   }
 

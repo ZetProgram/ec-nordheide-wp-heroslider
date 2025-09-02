@@ -307,9 +307,33 @@
   };
 
   // ---- Boot ----------------------------------------------------------------
-  function boot() {
-    qsa('.hcs-slider').forEach(function (el) { initSlider(el); });
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
+function ensureInit(el){
+  if (!el || el.__hcsInited) return;
+  el.__hcsInited = true; // idempotent
+  initSlider(el);
+}
+
+function boot(){
+  // Initial einmal
+  Array.prototype.slice.call(document.querySelectorAll('.hcs-slider')).forEach(ensureInit);
+
+  // ⤵️ Neu eingefügte Slider (z.B. im Gutenberg-Editor nach SSR) erkennen
+  var mo = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      Array.prototype.slice.call(m.addedNodes || []).forEach(function(n){
+        if (n.nodeType !== 1) return;
+        if (n.matches && n.matches('.hcs-slider')) ensureInit(n);
+        var found = n.querySelectorAll ? n.querySelectorAll('.hcs-slider') : [];
+        Array.prototype.slice.call(found).forEach(ensureInit);
+      });
+    });
+  });
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
 })();
