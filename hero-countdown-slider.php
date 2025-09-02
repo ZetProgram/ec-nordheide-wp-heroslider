@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Hero Countdown Slider
  * Description: Hero-Bannerslider mit Countdown/CTA. Slides im Backend pflegen, Block zeigt ausgewählte Slides.
- * Version: 1.3.4
+ * Version: 1.3.5
  * Author: Fabian Bross
  * Requires at least: 5.8
  * Tested up to: 6.8.2
@@ -30,26 +30,26 @@ function hcs_register_assets_and_block() {
     $style_css = HCS_PLUGIN_DIR . 'build/style.css';
 
     // Editor-Script (Block-UI im Editor)
-    wp_register_script(
-        'we-hero-slider-editor',
-        HCS_PLUGIN_URL . 'build/editor.js',
-        array('wp-blocks','wp-element','wp-i18n','wp-components','wp-block-editor','wp-data'), // <-- wp-data ergänzt
-        file_exists($editor_js) ? filemtime($editor_js) : null,
-        true
-    );
-
+		wp_register_script(
+		'we-hero-slider-editor',
+		HCS_PLUGIN_URL . 'build/editor.js',
+		array('wp-blocks','wp-element','wp-i18n','wp-components','wp-block-editor','wp-data','wp-server-side-render'),
+		file_exists($editor_js) ? filemtime($editor_js) : null,
+		true
+	);
     // Frontend-Script (Slider/Countdown)
-    wp_register_script(
-        'we-hero-slider-view',
-        HCS_PLUGIN_URL . 'build/view.js',
-        array(), // kein WP-Global nötig
-        file_exists($view_js) ? filemtime($view_js) : null,
-        true
-    );
-    if ( function_exists('wp_script_add_data') ) {
-        // Frontend-Script darf deferred sein
-        wp_script_add_data( 'we-hero-slider-view', 'strategy', 'defer' );
-    }
+	wp_register_script(
+	'we-hero-slider-view',
+	HCS_PLUGIN_URL . 'build/view.js',
+	array(), // keine WP-Globals nötig
+	file_exists($view_js) ? filemtime($view_js) : null,
+	true
+	);
+
+	// Defer NUR im Frontend, nicht im Editor
+	if ( function_exists('wp_script_add_data') && ! is_admin() ) {
+	wp_script_add_data( 'we-hero-slider-view', 'strategy', 'defer' );
+	}
 
     // Style (Editor + Frontend)
     wp_register_style(

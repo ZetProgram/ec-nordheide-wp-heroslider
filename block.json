@@ -32,6 +32,8 @@
   },
 
   "editorScript": "we-hero-slider-editor",
+  "script": "we-hero-slider-view",
   "viewScript": "we-hero-slider-view",
+
   "style": "we-hero-slider-style"
 }

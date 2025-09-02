@@ -1,17 +1,15 @@
 (function () {
   const { registerBlockType } = wp.blocks;
   const { __ } = wp.i18n;
-  const { createElement } = wp.element;
+  const { createElement, useEffect, useRef } = wp.element;
   const { InspectorControls, useBlockProps } = wp.blockEditor;
-  const {
-    PanelBody, ToggleControl, SelectControl, TextControl, Spinner, CheckboxControl
-  } = wp.components;
+  const { PanelBody, ToggleControl, SelectControl, TextControl, Spinner, CheckboxControl } = wp.components;
   const { useSelect } = wp.data;
 
-  // ServerSideRender (WP < 6.5 fallback über wp.components)
+  // ServerSideRender (neuere WP-Version)
   const ServerSideRender = wp.serverSideRender || wp.components.ServerSideRender;
 
-  const CPT_SLUG = 'hcs_slide'; // ggf. anpassen
+  const CPT_SLUG = 'hcs_slide';
 
   function Edit(props) {
     const { attributes, setAttributes } = props;
@@ -52,10 +50,34 @@
       );
     }
 
+    // 🔧 Kicker: initialisiert .hcs-slider innerhalb dieses Blocks
+    const previewRef = useRef(null);
+    useEffect(function () {
+      const root = previewRef.current;
+      if (!root) return;
+
+      const kick = function () {
+        var nodes = root.querySelectorAll ? root.querySelectorAll('.hcs-slider') : [];
+        Array.prototype.slice.call(nodes).forEach(function (el) {
+          if (!el.__hcsInited && typeof window.initSlider === 'function') {
+            try { window.initSlider(el); el.__hcsInited = true; } catch (e) {}
+          }
+        });
+      };
+
+      // 1) sofort versuchen
+      kick();
+
+      // 2) und bei nachträglich eingefügtem SSR-Markup
+      const mo = new MutationObserver(function () { kick(); });
+      mo.observe(root, { childList: true, subtree: true });
+
+      return function () { mo.disconnect(); };
+    }, [attributes]); // bei Änderungen erneut probieren
+
     return createElement(
       'div',
       blockProps,
-      // Inspector
       createElement(
         InspectorControls,
         null,
@@ -69,7 +91,6 @@
           { title: __('Darstellung', 'hcs'), initialOpen: false },
           createElement(SelectControl, {
             label: __('Modus', 'hcs'),
-            help: __('„Hero“ mit Overlay/Countdown/CTA, „Bild“ = reiner Bild-Slider', 'hcs'),
             value: attributes.mode,
             options: [
               { label: 'Hero', value: 'hero' },
@@ -122,16 +143,18 @@
         )
       ),
 
-      // 🔥 Live-Vorschau: fragt deine render.php an und fügt das HTML in den Editor ein
-      createElement(ServerSideRender, {
-        block: 'hcs/hero-slider',
-        attributes: attributes
-      })
+      // 🔥 Live-Vorschau aus PHP
+      createElement('div', { ref: previewRef },
+        createElement(ServerSideRender, {
+          block: 'hcs/hero-slider',
+          attributes: attributes
+        })
+      )
     );
   }
 
   registerBlockType('hcs/hero-slider', {
     edit: Edit,
-    save: function () { return null; } // dynamischer Block – Ausgabe via PHP
+    save: function () { return null; }
   });
 })();
