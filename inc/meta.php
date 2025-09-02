@@ -149,7 +149,30 @@ function hcs_slide_meta_cb( $post ) {
 
 		/* Inline helpers */
 		.hcs-inline { display:flex; align-items:center; gap:12px; }
-	</style>
+	
+/* Clean toggle styles: hide native checkbox, show only blue switch */
+.hcs-switch{ display:flex; align-items:center; gap:8px; }
+.hcs-toggle-input{
+  position:absolute !important;
+  opacity:0 !important;
+  width:1px !important; height:1px !important;
+  overflow:hidden !important; clip:rect(0 0 0 0) !important;
+}
+.hcs-toggle{
+  display:inline-block; width:42px; height:24px; border-radius:999px;
+  background:#e5e7eb; position:relative; vertical-align:middle;
+  transition: background .2s ease;
+  cursor:pointer;
+}
+.hcs-toggle::after{
+  content:''; position:absolute; top:3px; left:3px; width:18px; height:18px;
+  background:#fff; border-radius:50%; box-shadow:0 1px 1px rgba(0,0,0,.1);
+  transition: transform .2s ease;
+}
+.hcs-toggle-input:checked + .hcs-toggle{ background: var(--wp-admin-theme-color,#3858e9); }
+.hcs-toggle-input:checked + .hcs-toggle::after{ transform: translateX(18px); }
+.hcs-switch-label{ cursor:pointer; user-select:none; }
+</style>
 
 	<div class="hcs-wrap">
 		<div class="hcs-card">

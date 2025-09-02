@@ -7,7 +7,7 @@
   wp.blocks.registerBlockType('hcs/hero-slider', {
     title: __('Hero Slider', 'hcs'),
     icon: 'images-alt2',
-    category: 'widgets',
+    category: 'design',
     attributes: {
       slides: { type: 'array', default: [] },
       mode: { type: 'string', default: 'hero' },

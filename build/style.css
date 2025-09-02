@@ -82,3 +82,5 @@
 .hcs-slider:focus{ outline: 2px solid rgba(0,0,0,.2); outline-offset: 2px; }
 .hcs-arrow{ cursor: pointer; }
 .hcs-dot{ cursor: pointer; }
+
+.hcs--image-mode .hcs-overlay{display:none !important;}
