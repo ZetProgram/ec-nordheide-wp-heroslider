@@ -19,6 +19,66 @@
     "slides": {
       "type": "array",
       "default": []
+    },
+    "mode": {
+      "type": "string",
+      "default": "hero"
+    },
+    "fullWidth": {
+      "type": "boolean",
+      "default": false
+    },
+    "autoplay": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoplayDelay": {
+      "type": "number",
+      "default": 5000
+    },
+    "pauseOnHover": {
+      "type": "boolean",
+      "default": true
+    },
+    "showArrows": {
+      "type": "boolean",
+      "default": true
+    },
+    "showDots": {
+      "type": "boolean",
+      "default": true
+    },
+    "loop": {
+      "type": "boolean",
+      "default": true
+    },
+    "heightMode": {
+      "type": "string",
+      "default": "adaptive"
+    },
+    "vhHeight": {
+      "type": "string",
+      "default": "60vh"
+    },
+    "minHeight": {
+      "type": "string",
+      "default": "320px"
+    },
+    "maxHeight": {
+      "type": "string",
+      "default": "720px"
+    },
+    "height": {
+      "type": "string",
+      "default": "60vh"
+    },
+    "keyboard": {
+      "type": "boolean",
+      "default": true
+    },
+    "swipe": {
+      "type": "boolean",
+      "default": true
     }
   },
   "editorScript": "we-hero-slider-editor",

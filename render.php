@@ -2,7 +2,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * Hilfsfunktion: formatiert ein Slide-Objekt für das Frontend-Script.
+ * Slide -> Props
  */
 function hcs_build_slide_props( $slide_id ) {
 	$active     = get_post_meta( $slide_id, '_hcs_is_active', true ) === '1';
@@ -10,86 +10,77 @@ function hcs_build_slide_props( $slide_id ) {
 	if ( ! $active ) return null;
 	if ( $expires_at !== '' ) {
 		$exp_ts = strtotime( $expires_at );
-		if ( $exp_ts && time() > $exp_ts ) return null; // abgelaufen
+		if ( $exp_ts && time() > $exp_ts ) return null;
 	}
 
 	$title      = get_post_meta( $slide_id, '_hcs_title', true );
-	if ( $title === '' ) $title = get_the_title( $slide_id );
-	$subtitle   = (string) get_post_meta( $slide_id, '_hcs_subtitle', true );
-	$logo_id    = intval( get_post_meta( $slide_id, '_hcs_logo_id', true ) );
-	$show_logo  = get_post_meta( $slide_id, '_hcs_show_logo', true ) === '1';
-	$countdown  = (string) get_post_meta( $slide_id, '_hcs_countdown', true );
-	$cta_label  = (string) get_post_meta( $slide_id, '_hcs_cta_label', true );
-	$cta_url    = (string) get_post_meta( $slide_id, '_hcs_cta_url', true );
-	$cta_nf     = get_post_meta( $slide_id, '_hcs_cta_nf', true ) === '1';
-
-	$image_url  = get_the_post_thumbnail_url( $slide_id, 'full' );
+	$subtitle   = get_post_meta( $slide_id, '_hcs_subtitle', true );
+	$text       = wpautop( (string) get_post_meta( $slide_id, '_hcs_text', true ) );
+	$img_id     = (int) get_post_meta( $slide_id, '_hcs_bg_id', true );
+	$img_url    = $img_id ? wp_get_attachment_image_url( $img_id, 'full' ) : '';
+	$logo_id    = (int) get_post_meta( $slide_id, '_hcs_logo_id', true );
 	$logo_url   = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+	$cta_label  = get_post_meta( $slide_id, '_hcs_cta_label', true );
+	$cta_url    = get_post_meta( $slide_id, '_hcs_cta_url', true );
+	$cta_nf     = get_post_meta( $slide_id, '_hcs_cta_nf', true ) === '1';
+	$expires_at = trim( (string) get_post_meta( $slide_id, '_hcs_expires_at', true ) );
 
 	return array(
-		'id'           => (int) $slide_id,
-		'imageUrl'     => $image_url ?: '',
-		'logoUrl'      => $logo_url ?: '',
-		'showLogo'     => (bool) $show_logo,
-		'title'        => $title ?: '',
-		'subtitle'     => $subtitle ?: '',
-		'countdownTo'  => $countdown ?: '',
-		'ctaLabel'     => $cta_label ?: '',
-		'ctaUrl'       => $cta_url ?: '',
-		'ctaNofollow'  => (bool) $cta_nf,
-		'isActive'     => true,
-		'expiresAt'    => $expires_at ?: '',
+		'title'      => (string) $title,
+		'subtitle'   => (string) $subtitle,
+		'text'       => (string) $text,
+		'img'        => (string) $img_url,
+		'logo'       => (string) $logo_url,
+		'cta'        => array(
+			'label' => (string) $cta_label,
+			'url'   => (string) $cta_url,
+			'nf'    => (bool) $cta_nf,
+		),
+		'expiresAt'  => (string) $expires_at,
 	);
 }
 
 /**
- * Server-Side-Render: gibt nur ein Container-Element aus.
- * Das eigentliche Markup baut view.js, basierend auf data-props.
+ * Render Callback
  */
-function hcs_render_block( $attributes ) {
-	$ids = isset( $attributes['slides'] ) && is_array( $attributes['slides'] ) ? array_map( 'intval', $attributes['slides'] ) : array();
-	if ( empty( $ids ) ) {
-		return '<div class="hcs-slider is-empty" aria-hidden="true"></div>';
-	}
-
-	// Ausgewählte Slides in Menü-Reihenfolge laden
-	$posts = get_posts( array(
-		'post_type'      => 'hcs_slide',
-		'posts_per_page' => -1,
-		'post__in'       => $ids,
-		'orderby'        => 'menu_order',
-		'order'          => 'ASC',
-		'suppress_filters' => true,
-	) );
-
+function hcs_render_block( $attributes = array(), $content = '' ) {
 	$slides = array();
-	foreach ( $posts as $p ) {
-		if ( ! in_array( (int) $p->ID, $ids, true ) ) continue; // safety
-		$props = hcs_build_slide_props( (int) $p->ID );
-		if ( $props ) $slides[] = $props;
+	if ( ! empty( $attributes['slides'] ) && is_array( $attributes['slides'] ) ) {
+		foreach ( $attributes['slides'] as $sid ) {
+			$p = hcs_build_slide_props( (int) $sid );
+			if ( $p ) $slides[] = $p;
+		}
 	}
 
-	if ( empty( $slides ) ) {
-		return '<div class="hcs-slider is-empty" aria-hidden="true"></div>';
-	}
-
-	$props = array(
-		'slides'          => $slides,
-		'autoplay'        => true,
-		'interval'        => 5000,
-		'pauseOnHover'    => true,
-		'heightMode'      => 'adaptive', // clamp(min, vh, max)
-		'vhHeight'        => '60vh',
-		'minHeight'       => '320px',
-		'maxHeight'       => '720px',
-		'borderRadius'    => '24px',
-		'showConfetti'    => true,
+	// Defaults + attribute overrides
+	$defaults = array(
+		'mode'           => 'hero',        // hero | image
+		'fullWidth'      => false,
+		'autoplay'       => true,
+		'autoplayDelay'  => 5000,
+		'pauseOnHover'   => true,
+		'showArrows'     => true,
+		'showDots'       => true,
+		'loop'           => true,
+		'heightMode'     => 'adaptive',    // adaptive | fixed
+		'vhHeight'       => '60vh',
+		'minHeight'      => '320px',
+		'maxHeight'      => '720px',
+		'height'         => '60vh',
+		'keyboard'       => true,
+		'swipe'          => true,
+		'showConfetti'   => true,
 		'endScreenMessage'=> "🎉 Los geht's!",
 	);
+	$props = wp_parse_args( is_array( $attributes ) ? $attributes : array(), $defaults );
+	$props['slides'] = $slides;
 
 	$json = wp_json_encode( $props, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	if ( ! $json ) $json = '{}';
 
-	return '<div class="hcs-slider" data-props="' . esc_attr( $json ) . '"></div>';
-}
+	$classes = array( 'hcs-slider' );
+	if ( ! empty( $props['fullWidth'] ) ) $classes[] = 'hcs--fullvw';
+	if ( $props['mode'] === 'image' ) $classes[] = 'hcs--image-mode';
 
+	return '<div class="' . esc_attr( implode( ' ', $classes ) ) . '" data-props="' . esc_attr( $json ) . '"></div>';
+}

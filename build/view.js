@@ -204,3 +204,69 @@
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+
+
+  // === Enhancements: keyboard + swipe + loop boundaries + image mode + 100vw breakout ===
+  function enhanceSlider(root, props, state){
+    // 100vw breakout (works even if theme blocks alignfull)
+    if(props.fullWidth || root.classList.contains('hcs--fullvw') || root.closest('.alignfull')){
+      root.classList.add('hcs-breakout');
+    }
+    // Keyboard
+    if(props.keyboard){
+      root.setAttribute('tabindex','0');
+      root.addEventListener('keydown', function(e){
+        if(e.key === 'ArrowRight'){ state.goTo(state.i+1); e.preventDefault(); }
+        else if(e.key === 'ArrowLeft'){ state.goTo(state.i-1); e.preventDefault(); }
+      });
+    }
+    // Swipe (touch)
+    if(props.swipe){
+      var startX=null, dx=0;
+      root.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, {passive:true});
+      root.addEventListener('touchmove', function(e){ if(startX!==null){ dx = e.touches[0].clientX - startX; } }, {passive:true});
+      root.addEventListener('touchend', function(e){
+        if(startX!==null){
+          if(Math.abs(dx) > 40){
+            if(dx<0) state.goTo(state.i+1); else state.goTo(state.i-1);
+          }
+        }
+        startX=null; dx=0;
+      }, {passive:true});
+    }
+  }
+
+  // Patch initializer to expose state + goTo/next/prev and obey loop=false
+  var _init = initSlider;
+  initSlider = function(root, props, slides){
+    var instance = _init(root, props, slides);
+    // If upstream doesn't expose, adapt in place
+    if(!instance){
+      // monkey patch: re-query track and dots and rebuild minimal state
+      var track = root.querySelector('.hcs-track');
+      var items = track ? Array.prototype.slice.call(track.children) : [];
+      var N = items.length, i = 0;
+      function apply(){
+        if(track) track.style.transform = 'translate3d(' + (-i*100) + '%,0,0)';
+        Array.prototype.slice.call(root.querySelectorAll('.hcs-dot')).forEach(function(d,k){ d.classList.toggle('is-active', k===i); });
+      }
+      function goTo(k){
+        if(props.loop){
+          i = (k%N+N)%N;
+        } else {
+          i = Math.max(0, Math.min(N-1, k));
+        }
+        apply();
+      }
+      var state = { i:i, goTo:goTo };
+      enhanceSlider(root, props, state);
+      return;
+    } else {
+      // If instance exists with goTo: enhance
+      try {
+        enhanceSlider(root, props, instance);
+      } catch(e){}
+      return instance;
+    }
+  };
+

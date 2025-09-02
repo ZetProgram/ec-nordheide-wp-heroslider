@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Hero Countdown Slider
  * Description: Hero-Bannerslider mit Countdown/CTA. Slides im Backend pflegen, Block zeigt eine gewählte Slider-Gruppe.
- * Version: 1.2.3
+ * Version: 1.2.4
  * Author: Fabian Bross
  * Requires at least: 5.8
- * Tested up to: 6.6
+ * Tested up to: 6.8.2
  * Requires PHP: 7.4
  * Update URI: https://github.com/ZetProgram/ec-nordheide-wp-heroslider
  * License: GPL-2.0-or-later
