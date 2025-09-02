@@ -1,0 +1,39 @@
+{
+  "apiVersion": 3,
+  "name": "hcs/hero-slider",
+  "title": "Hero / Bild Slider",
+  "category": "widgets",
+  "icon": "images-alt2",
+  "description": "Zeigt ausgewählte Slides (CPT) als Hero-/Bild-Slider.",
+  "version": "1.0.0",
+  "textdomain": "hcs",
+  "keywords": ["hero", "slider", "bild", "carousel"],
+
+  "attributes": {
+    "slides": { "type": "array", "default": [], "items": { "type": "number" } },
+    "mode": { "type": "string", "default": "hero" },
+    "fullWidth": { "type": "boolean", "default": false },
+    "heightMode": { "type": "string", "default": "adaptive" },
+    "minHeight": { "type": "string", "default": "320px" },
+    "vhHeight": { "type": "string", "default": "60vh" },
+    "maxHeight": { "type": "string", "default": "720px" },
+    "height": { "type": "string", "default": "" },
+    "showArrows": { "type": "boolean", "default": true },
+    "showDots": { "type": "boolean", "default": true },
+    "loop": { "type": "boolean", "default": true },
+    "keyboard": { "type": "boolean", "default": true },
+    "swipe": { "type": "boolean", "default": true },
+    "autoplay": { "type": "boolean", "default": false },
+    "autoplayDelay": { "type": "number", "default": 5000 },
+    "pauseOnHover": { "type": "boolean", "default": true },
+    "borderRadius": { "type": "string", "default": "24px" },
+    "endScreenMessage": { "type": "string", "default": "🎉 Los geht's!" },
+    "showConfetti": { "type": "boolean", "default": false }
+  },
+
+  "editorScript": "we-hero-slider-editor",
+  "script": "we-hero-slider-view",
+  "viewScript": "we-hero-slider-view",
+
+  "style": "we-hero-slider-style"
+}
