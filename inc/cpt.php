@@ -1,41 +1,31 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
- * CPT + Taxonomy für Hero Slides
+ * Minimaler CPT für Hero-Slides
+ * - im Admin sichtbar (show_ui)
+ * - in der REST-API sichtbar (show_in_rest) -> nötig für Editor-Auswahl
+ * - unterstützt Titel + Beitragsbild
+ * - keine Permalinks/Frontend-Queries
  */
-function hcs_register_cpt_tax() {
+function hcs_register_cpt() {
 	register_post_type( 'hcs_slide', array(
 		'labels' => array(
-			'name'          => __('Hero Slides', 'hcs'),
-			'singular_name' => __('Hero Slide', 'hcs'),
-			'add_new_item'  => __('Neue Slide', 'hcs'),
-			'edit_item'     => __('Slide bearbeiten', 'hcs'),
+			'name'          => __( 'Hero Slides', 'hcs' ),
+			'singular_name' => __( 'Hero Slide', 'hcs' ),
 		),
-		'public'              => false,
-		'show_ui'             => true,
-		'show_in_menu'        => true,
-		'show_in_rest'        => true, // wichtig für Gutenberg-Auswahl
-		'rest_base'           => 'hcs_slide',
-		'menu_icon'           => 'dashicons-images-alt2',
-		'supports'            => array( 'title', 'thumbnail', 'page-attributes' ),
-		'has_archive'         => false,
-		'publicly_queryable'  => false,
-		'rewrite'             => false,
-	) );
+		'public'             => false,            // kein öffentliches Frontend
+		'show_ui'            => true,             // im Admin-Menü sichtbar
+		'show_in_menu'       => true,
+		'show_in_rest'       => true,             // wichtig für Gutenberg (useSelect / REST)
+		'rest_base'          => 'hcs_slide',
+		'supports'           => array( 'title', 'thumbnail' ),
+		'menu_icon'          => 'dashicons-images-alt2',
 
-	register_taxonomy( 'hcs_slider', 'hcs_slide', array(
-		'labels' => array(
-			'name'          => __('Slider', 'hcs'),
-			'singular_name' => __('Slider', 'hcs'),
-			'add_new_item'  => __('Neuen Slider anlegen', 'hcs'),
-			'edit_item'     => __('Slider bearbeiten', 'hcs'),
-		),
-		'public'            => false,
-		'show_ui'           => true,
-		'show_in_rest'      => true,
-		'hierarchical'      => false,
-		'show_admin_column' => true,
+		// alles, was wir NICHT brauchen, wird hier deaktiviert:
+		'has_archive'        => false,
+		'publicly_queryable' => false,
+		'rewrite'            => false,
 	) );
 }
-add_action( 'init', 'hcs_register_cpt_tax' );
+add_action( 'init', 'hcs_register_cpt' );
