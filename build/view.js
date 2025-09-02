@@ -14,6 +14,21 @@
     return props.height || '60vh';
   }
 
+  function normalizeSlide(s){
+  return {
+    title:       s.title || '',
+    subtitle:    s.subtitle || '',
+    imageUrl:    s.imageUrl || s.img || '',
+    logoUrl:     s.logoUrl || s.logo || '',
+    showLogo:    (s.showLogo !== undefined) ? s.showLogo : !!(s.logoUrl || s.logo),
+    countdownTo: s.countdownTo || s.countdown || '',
+    ctaLabel:    s.ctaLabel || (s.cta && s.cta.label) || '',
+    ctaUrl:      s.ctaUrl   || (s.cta && s.cta.url)   || '',
+    ctaNofollow: s.ctaNofollow || (s.cta && s.cta.nf) || false,
+    isActive:    (s.isActive !== false)
+  };
+}
+
   function createEl(tag, attrs, children) {
     var el = document.createElement(tag);
     if (attrs) {
@@ -100,7 +115,7 @@
     root.style.height = clampHeight(props);
 
     // Build DOM
-    var slides = (props.slides || []).filter(function (s) { return s && s.isActive !== false; });
+    var slides = (props.slides || []).map(normalizeSlide).filter(function(s){ return s && s.isActive; });
     var track = createEl('div', { class: 'hcs-track' });
     var dots = createEl('div', { class: 'hcs-dots' });
     slides.forEach(function (s, idx) {
