@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Hero Countdown Slider
  * Description: Hero-Bannerslider mit Countdown/CTA. Slides im Backend pflegen, Block zeigt eine gewählte Slider-Gruppe.
- * Version: 1.2.5
+ * Version: 1.2.6
  * Author: Fabian Bross
  * Requires at least: 5.8
  * Tested up to: 6.8.2
@@ -56,10 +56,12 @@ function hcs_register_assets_and_block() {
 		true
 	);
 
-	if ( function_exists('wp_script_add_data') ) {
-		wp_script_add_data( 'we-hero-slider-view', 'strategy', 'defer' );
-		wp_script_add_data( 'we-hero-slider-editor', 'strategy', 'defer' );
-	}
+if ( function_exists('wp_script_add_data') ) {
+	// Frontend-Script darf 'defer' haben
+	wp_script_add_data( 'we-hero-slider-view', 'strategy', 'defer' );
+	// Editor-Script NICHT deferen, sonst registriert sich der Block zu spät
+	// wp_script_add_data( 'we-hero-slider-editor', 'strategy', 'defer' ); // <-- entfernen
+}
 
 	// Style (Editor + Frontend)
 	wp_register_style(
