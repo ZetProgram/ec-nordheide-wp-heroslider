@@ -7,6 +7,9 @@
   "description": "Zeigt ausgewählte Slides (CPT) als Hero-/Bild-Slider.",
   "version": "1.0.0",
   "textdomain": "hcs",
+
+  "keywords": ["hero", "slider", "bild", "carousel"],
+
   "attributes": {
     "slides": { "type": "array", "default": [], "items": { "type": "number" } },
     "mode": { "type": "string", "default": "hero" },
@@ -28,8 +31,27 @@
     "endScreenMessage": { "type": "string", "default": "🎉 Los geht's!" },
     "showConfetti": { "type": "boolean", "default": false }
   },
-  "editorScript": "file:./build/editor.js",
-  "viewScript": "file:./build/view.js",
+
+  "editorScript": {
+    "file": "file:./build/editor.js",
+    "dependencies": [
+      "wp-blocks",
+      "wp-i18n",
+      "wp-element",
+      "wp-block-editor",
+      "wp-components",
+      "wp-data"
+    ]
+  },
+
+  "viewScript": {
+    "file": "file:./build/view.js",
+    "dependencies": [
+      "wp-element"
+    ]
+  },
+
   "style": "file:./build/style.css",
+
   "render": "file:./render.php"
 }
