@@ -7,7 +7,6 @@
   "description": "Zeigt ausgewählte Slides (CPT) als Hero-/Bild-Slider.",
   "version": "1.0.0",
   "textdomain": "hcs",
-
   "keywords": ["hero", "slider", "bild", "carousel"],
 
   "attributes": {
@@ -32,26 +31,7 @@
     "showConfetti": { "type": "boolean", "default": false }
   },
 
-  "editorScript": {
-    "file": "file:./build/editor.js",
-    "dependencies": [
-      "wp-blocks",
-      "wp-i18n",
-      "wp-element",
-      "wp-block-editor",
-      "wp-components",
-      "wp-data"
-    ]
-  },
-
-  "viewScript": {
-    "file": "file:./build/view.js",
-    "dependencies": [
-      "wp-element"
-    ]
-  },
-
-  "style": "file:./build/style.css",
-
-  "render": "file:./render.php"
+  "editorScript": "we-hero-slider-editor",
+  "viewScript": "we-hero-slider-view",
+  "style": "we-hero-slider-style"
 }
